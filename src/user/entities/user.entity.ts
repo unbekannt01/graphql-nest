@@ -26,6 +26,9 @@ export class User {
   @Column({ default: Roles.USER })
   role: string;
 
+  @Column({ type: 'text', nullable: true })
+  refreshToken: string;
+
   @Column({ type: 'timestamp', nullable: true })
   Creation: Date;
 

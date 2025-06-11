@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -7,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { BookModule } from './book/book.module';
+import { JwtModule } from '@nestjs/jwt';
 import GraphQLJSON from 'graphql-type-json';
 import { upperDirectiveTransformer } from './auth/directives/upperDirectiveTransformer.directive';
 import { DirectiveLocation, GraphQLDirective } from 'graphql';
@@ -15,6 +18,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ComplexityPlugin } from './auth/plugins/complexity.plugin';
 import { LoggingPlugin } from './auth/plugins/login.plugin';
 import { UploadModule } from './upload/upload.module';
+import { ConfigModule } from '@nestjs/config';
 
 const upperDirective = new GraphQLDirective({
   name: 'upper',
@@ -26,6 +30,14 @@ const upperDirective = new GraphQLDirective({
     AuthModule,
     BookModule,
     UploadModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env'],
+    }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'hello-buddy-secret',
+      signOptions: { expiresIn: '1d' },
+    }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       transformSchema: (schema) => upperDirectiveTransformer(schema, 'upper'),
       buildSchemaOptions: {

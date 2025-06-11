@@ -42,11 +42,6 @@ export interface Person {
     lastName: string;
 }
 
-export interface LoginResult {
-    message: string;
-    access_token: string;
-}
-
 export interface Book {
     info: JSON;
     id: number;
@@ -69,6 +64,12 @@ export interface UploadFile {
     filename: string;
     url: string;
     userId: number;
+}
+
+export interface LoginResult {
+    message: string;
+    access_token: string;
+    refresh_token: string;
 }
 
 export interface IQuery {

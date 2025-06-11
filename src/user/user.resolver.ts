@@ -8,6 +8,7 @@ import {
   Mutation,
   Args,
   Int,
+  Context,
 } from '@nestjs/graphql';
 import { User } from './schema/user.schema';
 import { UserService } from './user.service';
@@ -20,6 +21,8 @@ import { UpdateUserArgs } from './args/update-user.args';
 import { RoleGuard, Roles } from 'src/auth/guards/role.guard';
 import { UploadFileService } from 'src/upload/upload.service';
 import { UploadFile } from 'src/upload/schema/upload.schema';
+import { LoginResult } from './loginResult';
+import * as jwt from 'jsonwebtoken';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -32,6 +35,34 @@ export class UserResolver {
   @Mutation(() => String, { name: 'registerUser' })
   registerUser(@Args('registerUserArgs') registerUserArgs: RegisterUserArgs) {
     return this.userService.registerUser(registerUserArgs);
+  }
+
+  @Query(() => LoginResult)
+  async login(
+    @Args('email') email: string,
+    @Args('password') password: string,
+    @Context() context: { req: any; res: { cookie: (...args: any[]) => void } }, // this contains both req and res
+  ): Promise<LoginResult> {
+    const user = await this.userService.loginUser(email, password);
+    if (!user) {
+      throw new Error('Invalid credentials');
+    }
+
+    jwt.verify(user.accessToken, process.env.JWT_SECRET!);
+
+    context.res.cookie('access_token', user.accessToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false,
+      maxAge: 60 * 60 * 1000,
+      path: '/',
+    });
+
+    return {
+      message: 'Login Successfully...!',
+      access_token: user.accessToken,
+      refresh_token: user.refreshToken,
+    };
   }
 
   @Mutation(() => User, { name: 'updateUser' })
