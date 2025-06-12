@@ -42,8 +42,8 @@ export interface Book {
 
 export interface UploadFile {
     id: number;
-    filename: string;
-    url: string;
+    file: string;
+    Creation: DateTime;
 }
 
 export interface User extends Person {
@@ -77,6 +77,7 @@ export interface IQuery {
     myBooks(): Book[] | Promise<Book[]>;
     bookById(bookId: number): Book | Promise<Book>;
     myFiles(): UploadFile[] | Promise<UploadFile[]>;
+    onlyFiles(): UploadFile[] | Promise<UploadFile[]>;
 }
 
 export interface IMutation {
@@ -89,9 +90,7 @@ export interface IMutation {
     deleteBook(bookId: number): string | Promise<string>;
     addBook(addBookArgs: AddBookArgs): string | Promise<string>;
     updateBook(updateBookArgs: UpdateBookArgs): Book | Promise<Book>;
-    singleUpload(file: Upload): string | Promise<string>;
-    deleteFile(fileId: number): string | Promise<string>;
-    updateFile(id: number, file: Upload): string | Promise<string>;
+    uploadFile(file: Upload): string | Promise<string>;
 }
 
 export interface ISubscription {
@@ -99,5 +98,6 @@ export interface ISubscription {
 }
 
 export type JSON = any;
+export type DateTime = any;
 export type Upload = any;
 type Nullable<T> = T | null;

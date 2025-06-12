@@ -18,9 +18,14 @@ scalar JSON
 
 type UploadFile {
   id: Int!
-  filename: String!
-  url: String!
+  file: String!
+  Creation: DateTime!
 }
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
 
 type User implements Person {
   id: ID!
@@ -59,6 +64,7 @@ type Query {
   myBooks: [Book!]!
   bookById(bookId: Int!): Book!
   myFiles: [UploadFile!]!
+  onlyFiles: [UploadFile!]!
 }
 
 type Mutation {
@@ -71,9 +77,7 @@ type Mutation {
   deleteBook(bookId: Int!): String!
   addBook(addBookArgs: AddBookArgs!): String!
   updateBook(updateBookArgs: UpdateBookArgs!): Book!
-  singleUpload(file: Upload!): String!
-  deleteFile(fileId: Int!): String!
-  updateFile(id: Int!, file: Upload!): String!
+  uploadFile(file: Upload!): String!
 }
 
 input UpdateUserArgs {

@@ -24,7 +24,6 @@ import { BookService } from 'src/book/book.service';
 import { UpdateUserArgs } from './args/update-user.args';
 import { RoleGuard, Roles } from 'src/auth/guards/role.guard';
 import { UploadFileService } from 'src/upload/upload.service';
-import { UploadFile } from 'src/upload/schema/upload.schema';
 import { LoginResult } from './loginResult';
 import * as jwt from 'jsonwebtoken';
 
@@ -153,19 +152,19 @@ export class UserResolver {
     })) as Book[];
   }
 
-  @ResolveField(() => [UploadFile], { nullable: true })
-  async files(@Parent() user: UserEntity): Promise<UploadFile[]> {
-    const uploadEntities = await this.uploadService.findUserFile(user.id);
-    if (!Array.isArray(uploadEntities)) {
-      return [];
-    }
-    return uploadEntities.map((file: any) => ({
-      id: file.id,
-      filename: file.file,
-      mimetype: file.mimetype ?? '',
-      encoding: file.encoding ?? '',
-      url: `/uploads/${file.file}`,
-      userId: file.user?.id ?? user.id,
-    }));
-  }
+  // @ResolveField(() => [UploadFile], { nullable: true })
+  // async files(@Parent() user: UserEntity): Promise<UploadFile[]> {
+  //   const uploadEntities = await this.uploadService.findUserFile(user.id);
+  //   if (!Array.isArray(uploadEntities)) {
+  //     return [];
+  //   }
+  //   return uploadEntities.map((file: any) => ({
+  //     id: file.id,
+  //     filename: file.file,
+  //     mimetype: file.mimetype ?? '',
+  //     encoding: file.encoding ?? '',
+  //     url: `/uploads/${file.file}`,
+  //     userId: file.user?.id ?? user.id,
+  //   }));
+  // }
 }

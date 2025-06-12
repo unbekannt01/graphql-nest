@@ -7,8 +7,8 @@ export class UploadFile {
   id: number;
 
   @Field()
-  filename: string;
+  file: string;
 
   @Field()
-  url: string;
+  Creation: Date;
 }
