@@ -5,7 +5,7 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prettier/prettier */
-import { Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { RegisterUserArgs } from './args/register-user.args';
@@ -91,13 +91,6 @@ export class UserService {
     return this.userRepo.find();
   }
 
-  async findAllUsersWithBooks(): Promise<User[]> {
-    return this.userRepo.find({
-      relations: ['book'],
-      // take: limit ?? 12,
-    });
-  }
-
   async findUserById(id: number): Promise<User | null> {
     return this.userRepo.findOne({ where: { id } });
   }
@@ -136,6 +129,99 @@ export class UserService {
     return 'User Deleted Successfully...!';
   }
 
+  async addFriend(userId: number, friendId: number): Promise<User> {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['friends'],
+    });
+    const friend = await this.userRepo.findOne({
+      where: { id: friendId },
+      relations: ['friends'],
+    });
+
+    if (!user || !friend) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Check if they are already friends
+    const alreadyFriends = user.friends?.some((f) => f.id === friendId);
+
+    if (!alreadyFriends) {
+      // Add friend to user's friends list
+      user.friends = [...(user.friends || []), friend];
+
+      // Add user to friend's friends list (bidirectional)
+      friend.friends = [...(friend.friends || []), user];
+
+      // Save both users
+      await this.userRepo.save([user, friend]);
+    }
+
+    return user;
+  }
+
+  async removeFriend(userId: number, friendId: number): Promise<User> {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['friends'],
+    });
+    const friend = await this.userRepo.findOne({
+      where: { id: friendId },
+      relations: ['friends'],
+    });
+    if (!user || !friend) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    // Check if they are friends
+    const isFriend = user.friends?.some((f) => f.id === friendId);
+    if (isFriend) {
+      // Remove friend from user's friends list
+      user.friends = (user.friends ?? []).filter((f) => f.id !== friendId);
+
+      // Remove user from friend's friends list (bidirectional)
+      friend.friends = (friend.friends ?? []).filter((f) => f.id !== userId);
+
+      // Save both users
+      await this.userRepo.save([user, friend]);
+    } else {
+      throw new HttpException('Not friends', HttpStatus.BAD_REQUEST);
+    }
+    return user;
+  }
+
+  async logout(userId: number) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new HttpException('User Not Found...!', HttpStatus.NOT_FOUND);
+    }
+
+    if (user.refreshToken === null) {
+      throw new HttpException(
+        'User Already Logout...!',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    user.refreshToken = null;
+    user.expiresInRefreshToken = null;
+
+    await this.userRepo.save(user);
+    return 'User Logout Successfully...!';
+  }
+
+  async findAllUsersWithoutAdmin(): Promise<User[]> {
+    return this.userRepo.find({
+      where: { role: 'USER' },
+      select: ['id', 'firstName', 'email'],
+    });
+  }
+
+  async findAllUsersWithBooks(): Promise<User[]> {
+    return this.userRepo.find({
+      relations: ['book', 'friends', 'file'],
+    });
+  }
+
   // generate access token and refresh token
   async generateTokens(
     user: User,
@@ -156,16 +242,24 @@ export class UserService {
     });
 
     const refreshToken = uuid();
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 2);
     user.refreshToken = refreshToken;
+    user.expiresInRefreshToken = expiryDate;
     await this.userRepo.save(user);
 
     return { accessToken, refreshToken };
   }
 
-  // Verify the refresh token and generate a new access token
-  async verifyRefreshToken(refreshToken: string): Promise<string> {
-    const user = await this.userRepo.findOne({ where: { refreshToken } });
-    if (!user) {
+  async generateNewAccessToken(refreshToken: string): Promise<string> {
+    const token = await this.userRepo.findOne({
+      where: {
+        refreshToken: refreshToken,
+        expiresInRefreshToken: MoreThanOrEqual(new Date()),
+      },
+    });
+
+    if (!token) {
       throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
     }
 
@@ -173,12 +267,20 @@ export class UserService {
     if (!jwtSecret) {
       throw new Error('JWT_SECRET environment variable is not defined');
     }
-    
+
     const newAccessToken = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: token.id, email: token.email, role: token.role },
       jwtSecret,
       { expiresIn: '1d' },
     );
+
+    const newRefreshToken = uuid();
+    const newRefreshTokenExpiryDate = new Date();
+
+    token.refreshToken = newRefreshToken;
+    token.expiresInRefreshToken = newRefreshTokenExpiryDate;
+    await this.userRepo.save(token);
+
     return newAccessToken;
   }
 }

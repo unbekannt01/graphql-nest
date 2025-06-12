@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Field,
   ObjectType,
@@ -9,6 +10,7 @@ import {
 } from '@nestjs/graphql';
 import { Roles } from 'src/auth/guards/role.guard';
 import { Book } from 'src/book/schema/book.schema';
+import { UploadFile as UploadFileSchema } from 'src/upload/schema/upload.schema'
 
 // Define a generic Person interface
 @InterfaceType()
@@ -47,6 +49,15 @@ export class User implements Person {
 
   @Field(() => [Book], { nullable: true })
   books?: Book[];
+
+  @Field(() => [UploadFileSchema], { nullable: true })
+  uploadFiles?: UploadFileSchema[];
+
+  @Field(() => [User], { nullable: true })
+  friends?: User[];
+
+  @Field(() => [UploadFileSchema], { nullable: true })
+  files?: UploadFileSchema[];
 }
 
 // Another type implementing the same interface

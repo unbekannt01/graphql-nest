@@ -8,14 +8,6 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export interface RegisterUserArgs {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    role: string;
-}
-
 export interface UpdateUserArgs {
     firstName?: Nullable<string>;
     lastName?: Nullable<string>;
@@ -25,7 +17,6 @@ export interface UpdateUserArgs {
 }
 
 export interface AddBookArgs {
-    id: number;
     title: string;
     price: number;
 }
@@ -49,6 +40,12 @@ export interface Book {
     price: number;
 }
 
+export interface UploadFile {
+    id: number;
+    filename: string;
+    url: string;
+}
+
 export interface User extends Person {
     id: string;
     firstName: string;
@@ -56,14 +53,9 @@ export interface User extends Person {
     email: string;
     role: string;
     books?: Nullable<Book[]>;
+    uploadFiles?: Nullable<UploadFile[]>;
+    friends?: Nullable<User[]>;
     files?: Nullable<UploadFile[]>;
-}
-
-export interface UploadFile {
-    id: number;
-    filename: string;
-    url: string;
-    userId: number;
 }
 
 export interface LoginResult {
@@ -77,7 +69,9 @@ export interface IQuery {
     securedDataforUser(): string | Promise<string>;
     securedDataforAdmin(): string | Promise<string>;
     login(email: string, password: string): LoginResult | Promise<LoginResult>;
+    logout(userId: number): string | Promise<string>;
     users(): User[] | Promise<User[]>;
+    onlyUsers(): User[] | Promise<User[]>;
     books(): Book[] | Promise<Book[]>;
     pagination(page: number, limit: number): Book[] | Promise<Book[]>;
     myBooks(): Book[] | Promise<Book[]>;
@@ -86,9 +80,12 @@ export interface IQuery {
 }
 
 export interface IMutation {
-    registerUser(registerUserArgs: RegisterUserArgs): string | Promise<string>;
+    registerUser(): string | Promise<string>;
     updateUser(updateUserArgs: UpdateUserArgs): User | Promise<User>;
+    addFriend(friendId: number): User | Promise<User>;
+    removeFriend(friendId: number): User | Promise<User>;
     deleteUser(userId: number): string | Promise<string>;
+    generateNewAccessToken(refreshToken: string): string | Promise<string>;
     deleteBook(bookId: number): string | Promise<string>;
     addBook(addBookArgs: AddBookArgs): string | Promise<string>;
     updateBook(updateBookArgs: UpdateBookArgs): Book | Promise<Book>;

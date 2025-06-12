@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
@@ -10,7 +11,4 @@ export class UploadFile {
 
   @Field()
   url: string;
-
-  @Field(() => Int)
-  userId: number;
 }

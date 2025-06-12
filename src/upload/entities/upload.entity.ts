@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -23,5 +24,5 @@ export class UploadFile {
 
   @ManyToOne(() => User, (user) => user.file, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: any;
+  user: User;
 }

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
@@ -25,7 +26,7 @@ export class JwtGuard implements CanActivate {
     if (authorizationHeader) {
       const token = authorizationHeader.split(' ')[1];
       try {
-        const user = jwt.verify(token, 'key') as jwt.JwtPayload;
+        const user = jwt.verify(token, process.env.JWT_SECRET!) as jwt.JwtPayload;
         // Add user ID to context for easier access
         ctx.user = { ...user, userId: user.id };
         return true;

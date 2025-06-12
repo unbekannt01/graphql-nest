@@ -16,6 +16,12 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 """
 scalar JSON
 
+type UploadFile {
+  id: Int!
+  filename: String!
+  url: String!
+}
+
 type User implements Person {
   id: ID!
   firstName: String!
@@ -23,6 +29,8 @@ type User implements Person {
   email: String!
   role: String!
   books: [Book!]
+  uploadFiles: [UploadFile!]
+  friends: [User!]
   files: [UploadFile!]
 }
 
@@ -30,13 +38,6 @@ interface Person {
   id: ID!
   firstName: String!
   lastName: String!
-}
-
-type UploadFile {
-  id: Int!
-  filename: String!
-  url: String!
-  userId: Int!
 }
 
 type LoginResult {
@@ -50,7 +51,9 @@ type Query {
   securedDataforUser: String!
   securedDataforAdmin: String!
   login(email: String!, password: String!): LoginResult!
+  logout(userId: Int!): String!
   users: [User!]!
+  onlyUsers: [User!]!
   books: [Book!]!
   pagination(page: Int! = 1, limit: Int! = 10): [Book!]!
   myBooks: [Book!]!
@@ -59,23 +62,18 @@ type Query {
 }
 
 type Mutation {
-  registerUser(registerUserArgs: RegisterUserArgs!): String!
+  registerUser: String!
   updateUser(updateUserArgs: UpdateUserArgs!): User!
+  addFriend(friendId: Int!): User!
+  removeFriend(friendId: Int!): User!
   deleteUser(userId: Int!): String!
+  generateNewAccessToken(refreshToken: String!): String!
   deleteBook(bookId: Int!): String!
   addBook(addBookArgs: AddBookArgs!): String!
   updateBook(updateBookArgs: UpdateBookArgs!): Book!
   singleUpload(file: Upload!): String!
   deleteFile(fileId: Int!): String!
   updateFile(id: Int!, file: Upload!): String!
-}
-
-input RegisterUserArgs {
-  firstName: String!
-  lastName: String!
-  email: String!
-  password: String!
-  role: String! = "USER"
 }
 
 input UpdateUserArgs {
@@ -87,7 +85,6 @@ input UpdateUserArgs {
 }
 
 input AddBookArgs {
-  id: Int!
   title: String!
   price: Int!
 }

@@ -1,9 +1,10 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { ObjectType } from '@nestjs/graphql';
 import { Roles } from 'src/auth/guards/role.guard';
 import { BookEntity } from 'src/book/entities/book.entity';
 import { UploadFile } from 'src/upload/entities/upload.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @ObjectType()
 @Entity('user1')
@@ -27,7 +28,10 @@ export class User {
   role: string;
 
   @Column({ type: 'text', nullable: true })
-  refreshToken: string;
+  refreshToken: string | null; 
+
+  @Column({ type: 'timestamp', nullable: true })
+  expiresInRefreshToken: Date | null;
 
   @Column({ type: 'timestamp', nullable: true })
   Creation: Date;
@@ -40,4 +44,8 @@ export class User {
 
   @OneToMany(() => UploadFile, (file) => file.user, { onDelete: 'CASCADE' })
   file: UploadFile[];
+
+  @ManyToMany(() => User, (user) => user.friends)
+  @JoinTable()
+  friends?: User[];
 }

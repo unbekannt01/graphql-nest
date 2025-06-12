@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Directive, ObjectType } from '@nestjs/graphql';
 import { User } from 'src/user/entities/user.entity';
 import {
