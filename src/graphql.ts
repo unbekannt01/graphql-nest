@@ -91,6 +91,8 @@ export interface IMutation {
     addBook(addBookArgs: AddBookArgs): string | Promise<string>;
     updateBook(updateBookArgs: UpdateBookArgs): Book | Promise<Book>;
     uploadFile(file: Upload): string | Promise<string>;
+    deleteFile(fileId: number): string | Promise<string>;
+    updateFile(id: number, file: Upload): string | Promise<string>;
 }
 
 export interface ISubscription {

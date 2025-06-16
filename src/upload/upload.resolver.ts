@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Mutation, Resolver, Context, Args, Query } from '@nestjs/graphql';
+import { Mutation, Resolver, Context, Args, Query, Int } from '@nestjs/graphql';
 import { UploadFileService } from './upload.service';
 import { FileUpload, GraphQLUpload } from 'graphql-upload-minimal';
 import { UseGuards } from '@nestjs/common';
@@ -25,10 +25,7 @@ export class UploadFileResolver {
 
   @Query(() => [UploadFile], { name: 'myFiles' })
   @UseGuards(JwtGuard)
-  getMyFiles(
-    // @Args({ name: 'userId', type: () => Int }) id: number,
-    @Context() context: any,
-  ) {
+  getMyFiles(@Context() context: any) {
     const file = context.user || context.req.user;
     return this.uploadFileService.findUserFile(file.id);
   }
@@ -45,30 +42,30 @@ export class UploadFileResolver {
       }));
   }
 
-  // @Mutation(() => String, { name: 'deleteFile' })
-  // @UseGuards(JwtGuard)
-  // deleteFileById(
-  //   @Args({ name: 'fileId', type: () => Int }) id: number,
-  //   @Context() context: any,
-  // ) {
-  //   const file = context.user || context.req.user;
-  //   return this.uploadFileService.deleteFile(id, file.id);
-  // }
+  @Mutation(() => String, { name: 'deleteFile' })
+  @UseGuards(JwtGuard)
+  deleteFileById(
+    @Args({ name: 'fileId', type: () => Int }) id: number,
+    @Context() context: any,
+  ) {
+    const file = context.user || context.req.user;
+    return this.uploadFileService.deleteFile(id, file.id);
+  }
 
-  // @Mutation(() => String, { name: 'updateFile' })
-  // @UseGuards(JwtGuard)
-  // async updateFile(
-  //   @Args('id', { type: () => Int }) id: number,
-  //   @Args('file', { type: () => GraphQLUpload }) file: FileUpload,
-  //   @Context() context: any,
-  // ): Promise<string> {
-  //   const user = context.user || context.req.user;
+  @Mutation(() => String, { name: 'updateFile' })
+  @UseGuards(JwtGuard)
+  async updateFile(
+    @Args('id', { type: () => Int }) id: number,
+    @Args('file', { type: () => GraphQLUpload }) file: FileUpload,
+    @Context() context: any,
+  ): Promise<string> {
+    const user = context.user || context.req.user;
 
-  //   const result = await this.uploadFileService.updateFile(
-  //     { id, file },
-  //     user.id,
-  //   );
+    const result = await this.uploadFileService.updateFile(
+      { id, file },
+      user.id,
+    );
 
-  //   return result;
-  // }
+    return result;
+  }
 }

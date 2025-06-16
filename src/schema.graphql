@@ -78,6 +78,8 @@ type Mutation {
   addBook(addBookArgs: AddBookArgs!): String!
   updateBook(updateBookArgs: UpdateBookArgs!): Book!
   uploadFile(file: Upload!): String!
+  deleteFile(fileId: Int!): String!
+  updateFile(id: Int!, file: Upload!): String!
 }
 
 input UpdateUserArgs {

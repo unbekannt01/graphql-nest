@@ -3,12 +3,18 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable prettier/prettier */
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { UploadFile } from './entities/upload.entity';
 import { FileUpload } from 'graphql-upload-minimal';
 import { SuperBaseService } from './supabase.service';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UpdateFileArgs } from './args/update-file.args';
 
 @Injectable()
 export class UploadFileService {
@@ -80,54 +86,56 @@ export class UploadFileService {
     return this.uploadRepo.find();
   }
 
-  // async deleteFile(id: number, userId: number): Promise<string> {
-  //   const file = await this.uploadRepo.findOne({
-  //     where: { id, user: { id: userId } },
-  //   });
+  async deleteFile(id: number, userId: number): Promise<string> {
+    const file = await this.uploadRepo.findOne({
+      where: { id, user: { id: userId } },
+    });
 
-  //   if (!file) {
-  //     throw new HttpException(
-  //       'File not found or you do not have permission to delete it.',
-  //       HttpStatus.NOT_FOUND,
-  //     );
-  //   }
+    if (!file) {
+      throw new HttpException(
+        'File not found or you do not have permission to delete it.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
-  //   await this.uploadRepo.delete(id);
-  //   return 'File has been deleted...!';
-  // }
+    await this.supabaseService.deleteFile(file.file);
 
-  // async updateFile(
-  //   updateFileArgs: UpdateFileArgs & { file: FileUpload },
-  //   userId: number,
-  // ): Promise<string> {
-  //   const { id, file } = updateFileArgs;
-  //   const { filename, mimetype, createReadStream } = file;
+    await this.uploadRepo.delete(id);
+    return 'File has been deleted...!';
+  }
 
-  //   const record = await this.uploadRepo.findOne({
-  //     where: { id, user: { id: userId } },
-  //     relations: ['user'],
-  //   });
+  async updateFile(
+    updateFileArgs: UpdateFileArgs & { file: FileUpload },
+    userId: number,
+  ): Promise<string> {
+    const { id, file } = updateFileArgs;
+    const { filename, mimetype, createReadStream } = file;
 
-  //   if (!record) {
-  //     throw new HttpException('File not found.', HttpStatus.NOT_FOUND);
-  //   }
+    const record = await this.uploadRepo.findOne({
+      where: { id, user: { id: userId } },
+      relations: ['user'],
+    });
 
-  //   const buffer =
-  //     await this.supabaseService.streamToBuffer(createReadStream());
-  //   const publicUrl = await this.supabaseService.uploadBuffer(
-  //     filename,
-  //     buffer,
-  //     mimetype,
-  //   );
+    if (!record) {
+      throw new HttpException('File not found.', HttpStatus.NOT_FOUND);
+    }
 
-  //   await this.uploadRepo.update(
-  //     { id, user: { id: userId } },
-  //     {
-  //       file: publicUrl,
-  //       Updation: new Date(),
-  //     },
-  //   );
+    const buffer =
+      await this.supabaseService.streamToBuffer(createReadStream());
+    const publicUrl = await this.supabaseService.uploadBuffer(
+      filename,
+      buffer,
+      mimetype,
+    );
 
-  //   return 'File updated successfully.';
-  // }
+    await this.uploadRepo.update(
+      { id, user: { id: userId } },
+      {
+        file: publicUrl,
+        Updation: new Date(),
+      },
+    );
+
+    return 'File updated successfully.';
+  }
 }
